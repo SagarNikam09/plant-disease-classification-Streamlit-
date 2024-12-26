@@ -2,6 +2,7 @@ import streamlit as st
 import tensorflow as tf
 import numpy as np
 from PIL import Image
+import base64
 
 def model_prediction(test_image):
     model = tf.keras.models.load_model('trained_model.keras')
@@ -11,15 +12,83 @@ def model_prediction(test_image):
     predictions = model.predict(input_arr)
     return np.argmax(predictions, axis=1)[0]
 
+def get_base64(file_path):
+    """Function to encode file to base64"""
+    with open(file_path, "rb") as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
+
+def set_background_video(video_file):
+    """Function to set background video using local file"""
+    video_base64 = get_base64(video_file)
+    
+    # CSS and HTML to handle video background
+    st.markdown(
+        f'''
+        <style>
+            /* Video background styles */
+            .stApp {{
+                background: transparent;
+            }}
+            
+            .video-background {{
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                overflow: hidden;
+                z-index: -1;
+            }}
+            
+            #myVideo {{
+                position: absolute;
+                right: 0;
+                bottom: 0;
+                min-width: 100%;
+                min-height: 100%;
+                width: auto;
+                height: auto;
+            }}
+
+            /* Ensure Markdown content remains visible */
+            .stMarkdown {{
+                background-color: rgba(255, 255, 255, 0.7);
+                padding: 20px;
+                border-radius: 5px;
+                margin: 10px 0;
+            }}
+
+            /* Style headers */
+            .stMarkdown h1,
+            .stMarkdown h2,
+            .stMarkdown h3 {{
+                color: rgb(38, 39, 48);
+            }}
+
+            /* Style paragraphs */
+            .stMarkdown p {{
+                color: rgb(38, 39, 48);
+            }}
+        </style>
+        <div class="video-background">
+            <video autoplay muted loop playsinline id="myVideo">
+                <source src="data:video/mp4;base64,{video_base64}" type="video/mp4">
+            </video>
+        </div>
+        ''',
+        unsafe_allow_html=True
+    )
+
 # Sidebar
 st.sidebar.title("Dashboard")
-app_mode = st.sidebar.selectbox("Select Page", ["Home", "About", "Disease Recognition"])
-
+app_mode = st.sidebar.radio("Select Page", ["Home", "Disease Recognition","About"])
+video_file = "itachi-walk.mp4"  # Video file path
+set_background_video(video_file)
 # Main Page
 if app_mode == "Home":
     st.header("PLANT DISEASE CLASSIFICATION SYSTEM")
-    image_path = "image_back.jpeg"  # Ensure this file is in the same directory as main.py
-    st.image(image_path, use_column_width=True)
+
     st.markdown("""
     Welcome to the Plant Disease Recognition System! 🌿🔍
     
