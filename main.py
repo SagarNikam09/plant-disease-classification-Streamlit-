@@ -12,7 +12,7 @@ def model_prediction(test_image):
     input_arr = tf.keras.preprocessing.image.img_to_array(image)
     input_arr = np.array([input_arr])  # Convert single image to a batch.
     predictions = model.predict(input_arr)
-    return np.argmax(predictions, axis=1)[0]
+    return np.argmax(predictions, axis=1)[0], np.max(predictions) * 100
 
 def load_class_names():
     with open('class_names.json', 'r') as file:
@@ -143,7 +143,14 @@ elif app_mode == "Disease Recognition":
         # Predict button
         if st.button("Predict"):
             st.write("Our Prediction")
-            result_index = model_prediction(test_image)
+            result_index,confidence = model_prediction(test_image)
             # Reading Labels
             class_name = load_class_names()
             st.write(class_name[result_index])
+             # Add visual confidence indicator
+            if confidence > 90:
+                st.success(f"High confidence prediction: {confidence:.2f}%")
+            elif confidence > 70:
+                st.info(f"Moderate confidence prediction: {confidence:.2f}%")
+            else:
+                st.warning(f"Low confidence prediction: {confidence:.2f}%")
